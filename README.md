@@ -36,3 +36,5 @@ We welcome contributions to **Vitality (v6y)**. To contribute, please read our g
 
 ## License
 **Vitality (v6y)** is licensed under the MIT License. See the `LICENSE` file for more details.
+
+- WG23 POC OpenClaw natif : PR ouverte par l agent via son outil exec.
