@@ -120,3 +120,5 @@ Contributions are welcome. Please read the guidelines in the project [Wiki](http
 ## License
 
 Vitality (v6y) is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+
+<!-- WG23 Hermes autonome : PR draft de demonstration (agent via terminal) -->
