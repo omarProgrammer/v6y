@@ -5,6 +5,7 @@ import {
     RepositoryApi,
     ZipUtils,
 } from '@v6y/core-logic';
+import jwt from 'jsonwebtoken';
 
 import ServerConfig from '../config/ServerConfig.ts';
 
@@ -13,6 +14,8 @@ const { getRepositoryDetails, getRepositoryBranches, prepareGitBranchZipConfig }
 const { currentConfig } = ServerConfig;
 const { staticAuditorApiPath, dynamicAuditorApiPath, devopsAuditorApiPath } = currentConfig || {};
 const ZIP_BASE_DIR = '../code-analysis-workspace';
+const SERVICE_NAME = 'v6y-bfb-main-analyzer';
+const STATIC_AUDITOR_AUDIENCE = 'v6y:bfb-static-auditor';
 
 interface BuildApplicationBranchParams {
     name: string;
@@ -75,9 +78,24 @@ const buildApplicationFrontendByBranch = async ({
     );
 
     try {
+        const jwtSecret = process.env.JWT_SECRET;
+
+        if (!jwtSecret) {
+            AppLogger.info(
+                '[ApplicationManager - buildApplicationFrontendByBranch] JWT_SECRET is not defined, static auditor call will be sent without an authentication header',
+            );
+        }
+
+        const serviceToken = jwtSecret
+            ? jwt.sign({ service: SERVICE_NAME, aud: STATIC_AUDITOR_AUDIENCE }, jwtSecret)
+            : '';
+
         await fetch(staticAuditorApiPath as string, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+                'Content-Type': 'application/json',
+                ...(serviceToken ? { Authorization: `Bearer ${serviceToken}` } : {}),
+            },
             body: JSON.stringify({ applicationId, workspaceFolder }),
         });
     } catch (error) {

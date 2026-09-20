@@ -1,87 +1,30 @@
-import { AppLogger, CorsOptions, ServerUtils } from '@v6y/core-logic';
-import bodyParser from 'body-parser';
-import cookieParser from 'cookie-parser';
-import cors from 'cors';
-import express from 'express';
-import expressStatusMonitor from 'express-status-monitor';
+import { AppLogger, ServerUtils } from '@v6y/core-logic';
 
+import createStaticAuditorApp from './app.ts';
 import ServerConfig from './commons/ServerConfig.ts';
-import StaticAuditorRouter from './routes/StaticAuditorRouter.ts';
 
 const { createServer } = ServerUtils;
+
 const { currentConfig } = ServerConfig;
+const { port, serverTimeout } = currentConfig || {};
 
-const {
-    ssl,
-    monitoringPath,
-    hostname,
-    port,
-    healthCheckPath,
-    staticAuditorApiPath,
-    serverTimeout,
-    serverUrl,
-} = currentConfig || {}; // Destructuring with defaults
-
-const app = express();
+// *********************************************** App Factory ***********************************************
+// Build the Static Auditor express application (middlewares, health-check, routes).
+const app = createStaticAuditorApp();
 
 const httpServer = createServer({
     app,
     config: currentConfig,
 });
 
-// *********************************************** Server Configuration ***********************************************
-
-// Cookie Parser: Parses cookies from incoming requests.
-app.use(cookieParser());
-
-// CORS (Cross-Origin Resource Sharing): Configures the server to allow requests from other origins.
-app.use(cors(CorsOptions));
-
-// Body Parser: Parses incoming request bodies in different formats (URL-encoded, JSON).
-app.use(bodyParser.json());
-
-// *********************************************** Monitoring ***********************************************
-
-// Express Status Monitor: Adds a monitoring dashboard accessible at the specified path.
-app.use(
-    expressStatusMonitor({
-        path: monitoringPath,
-        healthChecks: [
-            {
-                protocol: ssl ? 'https' : 'http',
-                host: hostname,
-                port,
-                path: healthCheckPath,
-            },
-        ],
-    }),
-);
-
-// *********************************************** Health Check ***********************************************
-
-// Health Check Endpoint: Responds with "V6y Server is UP!" if the server is healthy.
-app.get(healthCheckPath, (req, res) => {
-    res.status(200).send('V6y Server is UP!');
-});
-
-// *********************************************** App Auditor Routes ***********************************************
-app.use(staticAuditorApiPath as string, StaticAuditorRouter);
-
-// *********************************************** Default Route (404) ***********************************************
-
-// Default Route: Handles requests to unknown routes and returns a 404 Not Found response.
-app.get('*', (request, response) => {
-    AppLogger.debug(`[*] KO: Requested route ${request.url} does not exist`);
-    response.status(404).json({
-        success: false,
-        message: 'The requested route does not exist',
-    });
-});
-
-// *********************************************** Server Start ***********************************************
-
+// Listen on the specified port with all interfaces (0.0.0.0)
+// This ensures the server is accessible from within the Docker network.
+// In production, the server is exposed on a specific app port (4003) mapped to an internal port (3333)
+// The .env variable V6Y_STATIC_ANALYZER_PORT is used to configure the internal port.
+// It is set in each app .env file and at the env level in docker-compose.yml
+// The port is crucial for internal container-to-container communication within the Docker network.
 await new Promise((resolve) => httpServer.listen({ port }, () => resolve(null))); // Wait for server to start
 
 httpServer.timeout = serverTimeout; // Set server timeout
 
-AppLogger.info(`🚀 Server started at ${serverUrl}`);
+AppLogger.info(`🚀 Server on port : ${port}`);
