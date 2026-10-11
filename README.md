@@ -53,7 +53,7 @@ Both are opt-out per account from the **Email notifications** page in `front`. D
 ## Prerequisites
 
 - Node.js `v22.11.0` (see [.nvmrc](.nvmrc))
-- pnpm (installed via Corepack, version pinned in [package.json](package.json))
+- pnpm `11.18.0`, the version used by CI (see [setup-pnpm-node action](.github/actions/setup-pnpm-node/action.yml)), installable with `npm i -g pnpm@11.18.0`
 - Docker and Docker Compose, for the local PostgreSQL database and containerized runs
 - A GitHub and/or GitLab personal access token if you plan to analyze repositories hosted there
 
