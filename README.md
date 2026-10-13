@@ -120,3 +120,8 @@ Contributions are welcome. Please read the guidelines in the project [Wiki](http
 ## License
 
 Vitality (v6y) is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+
+## Contribuer
+
+Avant d'envoyer une pull request, merci d'ouvrir d'abord une issue pour décrire le problème ou la fonctionnalité visée.
+Cela permet d'en discuter et d'éviter le travail en double.
